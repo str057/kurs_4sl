@@ -1,0 +1,15 @@
+[project]
+name = "vacancy_analyzer"
+version = "1.0.0"
+description = "Анализ вакансий с hh.ru"
+authors = [
+    {name = "Ruslan Zubrin", email = "error.blin@gmail.com"},
+]
+requires-python = ">=3.8"
+dependencies = [
+    "requests>=2.28.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
