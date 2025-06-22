@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+import requests
 
 
 class AbstractAPI(ABC):
@@ -11,6 +11,6 @@ class AbstractAPI(ABC):
         pass
 
     @abstractmethod
-    def get_vacancies(self, search_query: str, per_page: int = 100) -> List[dict]:
+    def get_vacancies(self, search_query: str, per_page: int = 100) -> list[dict]:
         """Получение вакансий по поисковому запросу"""
         pass

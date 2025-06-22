@@ -14,19 +14,26 @@ class HeadHunterAPI(AbstractAPI):
         """Подключение к API HH.ru"""
         response = requests.get(self.__base_url)
         if response.status_code != 200:
-            raise ConnectionError(f"Ошибка подключения к API HH. Код: {response.status_code}")
+            raise ConnectionError(
+                f"Ошибка подключения к API HH. Код: {response.status_code}"
+            )
 
     def get_vacancies(self, search_query: str, per_page: int = 100) -> List[Dict]:
-        """Получение вакансий с HH.ru"""
+        """
+        Получение вакансий с HH.ru
+
+        :param search_query: Поисковый запрос
+        :param per_page: Количество вакансий
+        :return: Список вакансий
+        """
         params = {
             "text": search_query,
             "per_page": per_page,
             "area": 113,  # Россия
-            "only_with_salary": True
+            "only_with_salary": False,  # Разрешаем вакансии без зарплаты
         }
 
         response = requests.get(self.__base_url, params=params)
         response.raise_for_status()
 
-        # Возвращаем только 'items'
         return response.json().get("items", [])

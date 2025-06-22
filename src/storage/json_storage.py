@@ -1,87 +1,61 @@
 import json
 import os
-from typing import List, Dict, Optional
-from src.models.vacancy import Vacancy
-from src.storage.abstract_storage import AbstractStorage
+from typing import List, Dict, Union
 
 
-class JSONStorage(AbstractStorage):
-    """Класс для работы с JSON-хранилищем вакансий"""
+class JSONStorage:
+    def __init__(self, file_path: str = "data/vacancies.json"):
+        self.file_path = file_path
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-    def __init__(self, filename: str = "data/vacancies.json"):
-        self.__filename = filename
-        self._ensure_directory_exists()
+    def add_vacancy(self, vacancy: Union[Dict, object]) -> None:
+        """Добавляет вакансию в хранилище"""
+        try:
+            vacancy_dict = self._convert_to_dict(vacancy)
+            self._validate_vacancy(vacancy_dict)
 
-        if not os.path.exists(self.__filename):
-            with open(self.__filename, 'w') as file:
-                json.dump([], file)
+            vacancies = self._read_file()
+            if not self._vacancy_exists(vacancies, vacancy_dict):
+                vacancies.append(vacancy_dict)
+                self._write_file(vacancies)
+        except (ValueError, AttributeError) as e:
+            raise ValueError(f"Invalid vacancy data: {str(e)}")
 
-    def _ensure_directory_exists(self) -> None:
-        """Создает директорию, если она не существует"""
-        os.makedirs(os.path.dirname(self.__filename), exist_ok=True)
-
-    def __read_file(self) -> List[Dict]:
-        """Чтение данных из файла"""
-        with open(self.__filename, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            # Возвращаем список вакансий из ключа 'items'
-            return data.get("items", [])
-
-    def __write_file(self, data: List[Dict]) -> None:
-        """Запись данных в файл"""
-        with open(self.__filename, 'w', encoding='utf-8') as file:
-            json.dump({"items": data}, file, indent=2, ensure_ascii=False)  # Записываем с ключом 'items'
-
-    def add_vacancy(self, vacancy: Vacancy) -> None:
-        """Добавление вакансии в хранилище"""
-        vacancies = self.__read_file()
-
-        # Убедитесь, что vacancies - это список
-        if not isinstance(vacancies, list):
-            raise ValueError("Ожидался список вакансий, но получено: {}".format(type(vacancies)))
-
-        # Проверяем, что в vacancies находятся словари
-        if not all(isinstance(v, dict) for v in vacancies):
-            raise ValueError("Ожидался список словарей, но получено: {}".format(vacancies))
-
-        if not any(v['url'] == vacancy.url for v in vacancies):
-            vacancies.append({
-                'title': vacancy.title,
-                'url': vacancy.url,
-                'salary_from': vacancy.salary_from,
-                'salary_to': vacancy.salary_to,
-                'currency': vacancy.currency,
-                'description': vacancy.description,
-                'requirements': vacancy.requirements
-            })
-            self.__write_file({"items": vacancies})  # Записываем обратно в формате с ключом 'items'
-
-    def get_vacancies(self, criteria: Optional[Dict] = None) -> List[Vacancy]:
-        """Получение вакансий по критериям"""
-        vacancies_data = self.__read_file()
-        vacancies = []
-
-        for vacancy_data in vacancies_data:
-            vacancy = Vacancy(
-                title=vacancy_data['title'],
-                url=vacancy_data['url'],
-                salary_from=vacancy_data['salary_from'],
-                salary_to=vacancy_data['salary_to'],
-                currency=vacancy_data['currency'],
-                description=vacancy_data['description'],
-                requirements=vacancy_data['requirements']
+    def _convert_to_dict(self, vacancy: Union[Dict, object]) -> Dict:
+        """Конвертирует объект вакансии в словарь"""
+        if isinstance(vacancy, dict):
+            return vacancy
+        elif hasattr(vacancy, "to_dict") and callable(vacancy.to_dict):
+            return vacancy.to_dict()
+        else:
+            raise AttributeError(
+                "Vacancy must be a dictionary or have to_dict() method"
             )
 
-            if not criteria or all(
-                    getattr(vacancy, key) == value
-                    for key, value in criteria.items()
-            ):
-                vacancies.append(vacancy)
+    def _validate_vacancy(self, vacancy: Dict) -> None:
+        """Проверяет валидность данных вакансии"""
+        if not isinstance(vacancy, dict):
+            raise ValueError("Vacancy data must be a dictionary")
+        if "id" not in vacancy or not isinstance(vacancy["id"], str):
+            raise ValueError("Vacancy must have a string 'id' field")
 
-        return vacancies
+    def _vacancy_exists(self, vacancies: List[Dict], new_vacancy: Dict) -> bool:
+        """Проверяет, существует ли уже такая вакансия"""
+        return any(v.get("id") == new_vacancy.get("id") for v in vacancies)
 
-    def delete_vacancy(self, vacancy: Vacancy) -> None:
-        """Удаление вакансии из хранилища"""
-        vacancies = self.__read_file()
-        vacancies = [v for v in vacancies if v['url'] != vacancy.url]
-        self.__write_file(vacancies)
+    def _read_file(self) -> List[Dict]:
+        """Читает вакансии из файла"""
+        if not os.path.exists(self.file_path):
+            return []
+
+        try:
+            with open(self.file_path, "r", encoding="utf-8") as file:
+                data = json.load(file)
+                return data if isinstance(data, list) else []
+        except (json.JSONDecodeError, FileNotFoundError):
+            return []
+
+    def _write_file(self, vacancies: List[Dict]) -> None:
+        """Записывает вакансии в файл"""
+        with open(self.file_path, "w", encoding="utf-8") as file:
+            json.dump(vacancies, file, ensure_ascii=False, indent=4)
