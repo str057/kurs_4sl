@@ -12,7 +12,7 @@
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/ваш-username/ваш-репозиторий.git
+git clone https://github.com/str057/kurs_4sl/pull/1
 cd ваш-репозиторий
 Установите зависимости:
 
