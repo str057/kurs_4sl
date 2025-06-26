@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import requests
 
 
 class AbstractAPI(ABC):

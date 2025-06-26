@@ -4,9 +4,6 @@ from src.models.vacancy import (
     Salary,
     Employer,
     Area,
-    Experience,
-    Employment,
-    Snippet,
 )
 
 

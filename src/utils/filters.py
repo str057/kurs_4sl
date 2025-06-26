@@ -11,10 +11,18 @@ def filter_vacancies(
 
     filtered = []
     for vacancy in vacancies:
-        vacancy_text = f"{vacancy.name} {vacancy.snippet.requirement or ''} {vacancy.snippet.responsibility or ''}".lower()
+        vacancy_text = (
+            f"{vacancy.name} "
+            f"{vacancy.snippet.requirement or ''} "
+            f"{vacancy.snippet.responsibility or ''}"
+        ).lower()
+
         if all(word.lower() in vacancy_text for word in filter_words):
             filtered.append(vacancy)
     return filtered
+
+
+# ... остальные функции фильтрации ...
 
 
 def get_vacancies_by_salary(
