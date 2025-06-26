@@ -22,9 +22,6 @@ def filter_vacancies(
     return filtered
 
 
-# ... остальные функции фильтрации ...
-
-
 def get_vacancies_by_salary(
     vacancies: List[Vacancy], salary_range: str
 ) -> List[Vacancy]:
