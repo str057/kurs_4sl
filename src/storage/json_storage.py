@@ -4,6 +4,8 @@ from typing import List, Dict, Union
 
 
 class JSONStorage:
+    """Класс для работы с JSON-хранилищем вакансий"""
+
     def __init__(self, file_path: str = "data/vacancies.json"):
         self.file_path = file_path
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -20,6 +22,8 @@ class JSONStorage:
                 self._write_file(vacancies)
         except (ValueError, AttributeError) as e:
             raise ValueError(f"Invalid vacancy data: {str(e)}")
+
+    # ... остальные методы класса ...
 
     def _convert_to_dict(self, vacancy: Union[Dict, object]) -> Dict:
         """Конвертирует объект вакансии в словарь"""
